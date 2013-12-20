@@ -31,17 +31,17 @@ int main(int argc, char** argv)
 
 	Connection *con = DbLib::instance().connect("tcp://127.0.0.1:3306", "root", "");
 	state = con->createStatement();
-	state->execute("use phone_monster");
+	state->execute("use net_db");
 	result = state->executeQuery("select * from g_user");
 	//printf(" id user_id user_name level profession\n");
-	printf("%7s%10s%20s%7s%10s\n", "id", "user_id", "user_name", "level", "profession");
+	printf("%7s%10s%20s%7s%10s\n", "id", "user_id", "user_name", "level", "role_id");
 	while(result->next())
 	{
 		int64_t id		= result->getInt64("id");
 		int user_id		= result->getInt("user_id");
 		string user_name = result->getString("user_name");
 		int level		= result->getInt("level");
-		int profession	= result->getInt("profession");
+		int profession	= result->getInt("role_id");
 
 		printf(" %7d ", id);
 		printf(" %10d ", user_id);
