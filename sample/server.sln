@@ -5,6 +5,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "server_base", "server_base\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "server_dbbase", "server_dbbase\server_dbbase.vcxproj", "{3C430823-29DB-42CE-8417-D39985FFF7FA}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "server_crypto", "server_crypto\server_crypto.vcxproj", "{C33195A9-884E-4FD8-9733-51BCA501DCDC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -19,6 +21,10 @@ Global
 		{3C430823-29DB-42CE-8417-D39985FFF7FA}.Debug|Win32.Build.0 = Debug|Win32
 		{3C430823-29DB-42CE-8417-D39985FFF7FA}.Release|Win32.ActiveCfg = Release|Win32
 		{3C430823-29DB-42CE-8417-D39985FFF7FA}.Release|Win32.Build.0 = Release|Win32
+		{C33195A9-884E-4FD8-9733-51BCA501DCDC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C33195A9-884E-4FD8-9733-51BCA501DCDC}.Debug|Win32.Build.0 = Debug|Win32
+		{C33195A9-884E-4FD8-9733-51BCA501DCDC}.Release|Win32.ActiveCfg = Release|Win32
+		{C33195A9-884E-4FD8-9733-51BCA501DCDC}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
