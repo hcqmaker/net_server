@@ -158,6 +158,7 @@ NETWORK_BEGIN
 
 		const uint8* contents() const { return &_storage[0]; }
 		const uint8* data() const { return &_storage[0]; }
+		uint8* data() { return &_storage[0]; }
 		std::vector<uint8>& bytes() { return _storage; }
 		size_t size() const { return _storage.size(); }
 		bool empty() const { return _storage.empty(); }

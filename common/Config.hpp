@@ -13,7 +13,7 @@ NETWORK_BEGIN
 		Config(){}
 		bool loadIni(const std::string& filename)
 		{
-			boost::property_tree::ini_parser::read_ini("config.ini", m_pTree);
+			boost::property_tree::ini_parser::read_ini(filename.c_str(), m_pTree);
 			return true;
 		}
 
