@@ -1,8 +1,8 @@
 #ifndef __NET_SESSION_HPP__
 #define __NET_SESSION_HPP__
 
-#include "Define.hpp"
-#include "ICommon.hpp"
+#include "base/Define.hpp"
+#include "net/ICommon.hpp"
 
 #include <deque>
 

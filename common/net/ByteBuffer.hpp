@@ -1,9 +1,9 @@
 #ifndef __BYTEBUFFER_HPP__
 #define __BYTEBUFFER_HPP__
 
-#include "Define.hpp"
-#include "LogDefine.hpp"
-#include "ByteConverter.hpp"
+#include "base/Define.hpp"
+#include "base/LogDefine.hpp"
+#include "net/ByteConverter.hpp"
 
 #include <vector>
 

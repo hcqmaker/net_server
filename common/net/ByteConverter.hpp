@@ -1,7 +1,7 @@
 #ifndef __BYTECONVERTER_HPP__
 #define __BYTECONVERTER_HPP__
 
-#include "Define.hpp"
+#include "base/Define.hpp"
 #include <algorithm>
 
 NETWORK_BEGIN

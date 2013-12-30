@@ -1,9 +1,9 @@
 #ifndef __ICOMMON_HPP__
 #define __ICOMMON_HPP__
 
-#include "Define.hpp"
-#include "Packet.hpp"
-#include "LogDefine.hpp"
+#include "base/Define.hpp"
+#include "base/LogDefine.hpp"
+#include "net/ByteBuffer.hpp"
 
 #include <deque>
 #include <set>

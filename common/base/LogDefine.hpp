@@ -1,7 +1,7 @@
 #ifndef __LOG_DEFINED_HPP__
 #define __LOG_DEFINED_HPP__
 
-#include "Define.hpp"
+#include "base/Define.hpp"
 
 //////////////////////////////////////////////
 #define USER_LOG_FILE

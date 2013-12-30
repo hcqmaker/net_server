@@ -1,8 +1,8 @@
 #ifndef __NET_CLIENT_HPP__
 #define __NET_CLIENT_HPP__
 
-#include "Define.hpp"
-#include "ICommon.hpp"
+#include "base/Define.hpp"
+#include "net/ICommon.hpp"
 
 NETWORK_BEGIN
 	class NetClient : public IClient

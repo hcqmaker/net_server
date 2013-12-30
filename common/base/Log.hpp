@@ -2,8 +2,8 @@
 #define __LOG_HPP__
 
 
-#include "Define.hpp"
-#include "Singleton.hpp"
+#include "base/Define.hpp"
+#include "base/Singleton.hpp"
 
 #include <cstdio>
 #include <string>

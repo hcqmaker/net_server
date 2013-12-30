@@ -1,7 +1,7 @@
 #ifndef __SINGLETON_HPP__
 #define __SINGLETON_HPP__
 
-#include "Define.hpp"
+#include "base/Define.hpp"
 
 NETWORK_BEGIN
 	template <class T> 

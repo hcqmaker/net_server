@@ -1,9 +1,10 @@
 #ifndef __NET_LIB_HPP__
 #define __NET_LIB_HPP__
 
-#include "Define.hpp"
-#include "ICommon.hpp"
-#include "Singleton.hpp"
+#include "base/Define.hpp"
+#include "base/Singleton.hpp"
+#include "net/ICommon.hpp"
+
 #include <map>
 
 NETWORK_BEGIN

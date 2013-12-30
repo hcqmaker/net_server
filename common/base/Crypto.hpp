@@ -1,7 +1,7 @@
 #ifndef __CRYPTO_HPP__
 #define __CRYPTO_HPP__
 
-#include "Define.hpp"
+#include "base/Define.hpp"
 
 NETWORK_BEGIN
 	class Crypto 

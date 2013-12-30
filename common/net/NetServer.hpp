@@ -1,7 +1,7 @@
 #ifndef __NET_SERVER_HPP__
 #define __NET_SERVER_HPP__
 
-#include "ICommon.hpp"
+#include "net/ICommon.hpp"
 #include <boost/thread.hpp>
 #include <boost/smart_ptr/detail/atomic_count.hpp>
 

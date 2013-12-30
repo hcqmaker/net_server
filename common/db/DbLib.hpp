@@ -1,8 +1,8 @@
 #ifndef __DB_LIB_HPP__
 #define __DB_LIB_HPP__
 
-#include "Define.hpp"
-#include "Singleton.hpp"
+#include "base/Define.hpp"
+#include "base/Singleton.hpp"
 
 #include <mysql_connection.h>
 #include <mysql_driver.h>
