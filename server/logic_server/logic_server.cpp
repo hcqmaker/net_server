@@ -56,11 +56,8 @@ public:
 	// server
 	void onReciveServerHandle(long serverId, long sessionId, ByteBuffer& data)
 	{
-		Crypto::decrypt(data.data(), data.size(), data.data(), data.size());
 		uint16 cmd = data.read<uint16>();
 		sLog.outMessage("[GateServer::onReciveServerHandle] cmd: %d", cmd);
-
-		Crypto::encrypt(data.data(), data.size(), data.data(), data.size());
 		m_pServer->sendTo(sessionId, data);
 
 	}
@@ -75,7 +72,6 @@ public:
 	// client
 	void onReciveClientHandle(long clientId, ByteBuffer& data)
 	{
-		Crypto::decrypt(data.data(), data.size(), data.data(), data.size());
 		uint16 cmd = data.read<uint16>();
 		sLog.outMessage("[GateServer::onReciveServerHandle] cmd: %d", cmd);
 	}

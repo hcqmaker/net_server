@@ -78,7 +78,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="gate_server.cpp" />
+    <ClCompile Include="ChatHandle.cpp" />
+    <ClCompile Include="ClientServerHandle.cpp" />
+    <ClCompile Include="GameServerHandle.cpp" />
+    <ClCompile Include="GateServer.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="LoginHandle.cpp" />
+    <ClCompile Include="MasterHandle.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="GateServer.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
