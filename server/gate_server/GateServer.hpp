@@ -16,62 +16,62 @@ public:
 
 	void run();
 protected:
-	class MasterHandle : public IClientHandle
+	class MasterHandle
 	{
 	public:
 		MasterHandle(GateServer *s);
 		~MasterHandle();
 
-		virtual void onReciveClientHandle(uint64 clientId, ByteBuffer& data);
-		virtual void onErrorClientHandle(IClient *client, const boost::system::error_code& error);
+		void onReciveClientHandle(uint64 clientId, ByteBuffer& data);
+		void onErrorClientHandle(IClient *client, const boost::system::error_code& error);
 	protected:
 		GateServer *m_pGateServer;
 	};
 
-	class LoginHandle : public IClientHandle
+	class LoginHandle
 	{
 	public:
 		LoginHandle(GateServer *s);
 		~LoginHandle();
 
-		virtual void onReciveClientHandle(uint64 clientId, ByteBuffer& data);
-		virtual void onErrorClientHandle(IClient *client, const boost::system::error_code& error);
+		void onReciveClientHandle(uint64 clientId, ByteBuffer& data);
+		void onErrorClientHandle(IClient *client, const boost::system::error_code& error);
 	protected:
 		GateServer *m_pGateServer;
 	};
 
-	class ChatHandle : public IClientHandle
+	class ChatHandle
 	{
 	public:
 		ChatHandle(GateServer *s);
 		~ChatHandle();
 
-		virtual void onReciveClientHandle(uint64 clientId, ByteBuffer& data);
-		virtual void onErrorClientHandle(IClient *client, const boost::system::error_code& error);
+		void onReciveClientHandle(uint64 clientId, ByteBuffer& data);
+		void onErrorClientHandle(IClient *client, const boost::system::error_code& error);
 	protected:
 		GateServer *m_pGateServer;
 	};
 
-	class ClientServerHandle : public IServerHandle
+	class ClientServerHandle
 	{
 	public:
 		ClientServerHandle(GateServer *s);
 		~ClientServerHandle();
 
-		virtual void onReciveServerHandle(uint64 serverId, uint64 sessionId, ByteBuffer& data);
-		virtual void onErrorServerHandle(IServer *server, const boost::system::error_code& error);
+		void onReciveServerHandle(uint64 serverId, uint64 sessionId, ByteBuffer& data);
+		void onErrorServerHandle(IServer *server, const boost::system::error_code& error);
 	protected:
 		GateServer *m_pGateServer;
 	};
 
-	class GameServerHandle : public IServerHandle
+	class GameServerHandle
 	{
 	public:
 		GameServerHandle(GateServer *s);
 		~GameServerHandle();
 
-		virtual void onReciveServerHandle(uint64 serverId, uint64 sessionId, ByteBuffer& data);
-		virtual void onErrorServerHandle(IServer *server, const boost::system::error_code& error);
+		void onReciveServerHandle(uint64 serverId, uint64 sessionId, ByteBuffer& data);
+		void onErrorServerHandle(IServer *server, const boost::system::error_code& error);
 	protected:
 		GateServer *m_pGateServer;
 	};

@@ -36,7 +36,7 @@ NETWORK_BEGIN
 		bool destroyClient(uint64 id);
 		bool destroyServer(uint64 id);
 
-		void run(int thread_num = 2);
+		void run(int thread_num = 1);
 		void runOne();
 
 	};

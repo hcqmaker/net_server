@@ -7,7 +7,7 @@
 
 NETWORK_BEGIN
 	using boost::asio::ip::tcp;
-	class NetServer : public IServer, public ISessionHandle
+	class NetServer : public IServer
 	{
 	public:
 		NetServer(boost::asio::io_service& ioservice, const tcp::endpoint& endpoint);
@@ -30,8 +30,8 @@ NETWORK_BEGIN
 		void handle_accept(ISessionPtr session, const boost::system::error_code& error);
 		void throwError(const boost::system::error_code& error);
 
-		void onReciveSessionHandle(uint64 sessionId, ByteBuffer& data);
-		void onErrorSessionHandle(ISessionPtr session, const boost::system::error_code& error);
+		void onReciveHandle(uint64 sessionId, ByteBuffer& data);
+		void onErrorHandle(ISessionPtr session, const boost::system::error_code& error);
 
 	private:
 		tcp::endpoint m_endpoint;

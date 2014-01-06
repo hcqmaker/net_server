@@ -42,6 +42,29 @@ enum DB_RET
 	DB_SUCC,
 };
 
+// group
+struct GroupLogin
+{
+	uint64 csessionId;	// client session from gate server
+	uint64 lsessionId;	// login session
+	uint64 serverId;
+
+	GroupLogin(uint64 csId = 0, uint64 lsId = 0, uint64 sId = 0)
+		:csessionId(csId), lsessionId(lsId), serverId(sId) {}
+	bool operator==(const GroupLogin& s) const
+	{
+		return this->csessionId == s.csessionId && this->lsessionId == s.lsessionId && this->serverId == s.serverId;
+	}
+	bool operator<(const GroupLogin& s) const
+	{
+		return this->csessionId < s.csessionId && this->lsessionId < s.lsessionId && this->serverId < s.serverId;
+	}
+	bool operator!=(const GroupLogin& s) const
+	{
+		return this->csessionId == s.csessionId && this->lsessionId == s.lsessionId && this->serverId == s.serverId;
+	}
+};
+
 struct PlayerLoginInfo
 {
 	char user_name[MAX_NAME];

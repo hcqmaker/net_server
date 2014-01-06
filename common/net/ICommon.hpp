@@ -35,36 +35,25 @@ NETWORK_BEGIN
 	typedef boost::shared_ptr<IClient> IClientPtr;
 	typedef std::map<uint64, IClient> IClientPtrMap;
 
+	// handle
+	typedef boost::function<void(uint64 id, ByteBuffer& data)> ReceiveHandle;
+	typedef boost::function<void(IClient *client, const boost::system::error_code& error)> ErrorClientHandle;
+	typedef boost::function<void(ISessionPtr session, const boost::system::error_code& error)> ErrorSessionHandle;
+
+	typedef boost::function<void(uint64 serverId, uint64 sessionId, ByteBuffer& data)> ReciveServerHandle;
+	typedef boost::function<void(IServer *server, const boost::system::error_code& error)> ErrorServerHandle;
+
 	using boost::asio::ip::tcp;
 	
-	class IClientHandle
-	{
-	public:
-		virtual void onReciveClientHandle(uint64 clientId, ByteBuffer& data) = 0;
-		virtual void onErrorClientHandle(IClient *client, const boost::system::error_code& error) = 0;
-	};
-
-	class ISessionHandle
-	{
-	public:
-		virtual void onReciveSessionHandle(uint64 sessionId, ByteBuffer& data) = 0;
-		virtual void onErrorSessionHandle(ISessionPtr session, const boost::system::error_code& error) = 0;
-	};
-
-	class IServerHandle
-	{
-	public:
-		virtual void onReciveServerHandle(uint64 serverId, uint64 sessionId, ByteBuffer& data) = 0;
-		virtual void onErrorServerHandle(IServer *server, const boost::system::error_code& error) = 0;
-	};
-
 	class IClient
 	{
 	public:
-		IClient():m_nId(0l),m_pHandle(0){}
+		IClient():m_nId(0l){}
 		virtual ~IClient(){}
 		virtual uint64 getId() { return m_nId;}
 		
+		virtual void tryConnect() = 0;
+
 		virtual void close() = 0;
 		virtual bool isConnected() = 0;
 		virtual void write(const ByteBuffer& pack) = 0;
@@ -72,18 +61,22 @@ NETWORK_BEGIN
 		virtual std::string getHost() = 0;
 		virtual uint16 getPort() = 0;
 
-		void bindHandle(IClientHandle* handle) { m_pHandle = handle; }
-		IClientHandle * unBindHandle() { IClientHandle *p = m_pHandle; m_pHandle = 0; return p; }
+		void bindReceiveHandle(ReceiveHandle handle) { m_hReceive = handle; }
+		void unBindReceiveHandle() { m_hReceive = NULL; }
+
+		void bindErrorHandle(ErrorClientHandle handle) { m_hError = handle; }
+		void unBindErrorHandle() { m_hError = NULL; }
 
 	protected:
 		uint64 m_nId;
-		IClientHandle *m_pHandle;
+		ReceiveHandle m_hReceive;
+		ErrorClientHandle m_hError;
 	};
 
 	class ISession
 	{
 	public:
-		ISession():m_nId(0l),m_pHandle(0){}
+		ISession():m_nId(0l){}
 		virtual ~ISession(){}
 
 		virtual uint64 getServerId() = 0;
@@ -93,19 +86,23 @@ NETWORK_BEGIN
 		virtual bool isConnected() = 0;
 		virtual void write(const ByteBuffer& pack) = 0;
 
-		void bindHandle(ISessionHandle* handle) { m_pHandle = handle; }
-		ISessionHandle * unBindHandle() { ISessionHandle *p = m_pHandle; m_pHandle = 0; return p; }
+		void bindReceiveHandle(ReceiveHandle handle) { m_hReceive = handle; }
+		void unBindReceiveHandle() { m_hReceive = NULL; }
+
+		void bindErrorHandle(ErrorSessionHandle handle) { m_hError = handle; }
+		void unBindErrorHandle() { m_hError = NULL; }
 
 	protected:
 		uint64 m_nId;
-		ISessionHandle *m_pHandle;
+		ReceiveHandle m_hReceive;
+		ErrorSessionHandle m_hError;
 	};
 	
 
 	class IServer
 	{
 	public:
-		IServer():m_nId(0l),m_pHandle(0){}
+		IServer():m_nId(0l){}
 		virtual ~IServer(){}
 		virtual uint64 getId() { return m_nId;}
 
@@ -116,12 +113,16 @@ NETWORK_BEGIN
 
 		virtual uint16 getPort() = 0;
 
-		void bindHandle(IServerHandle* handle) { m_pHandle = handle; }
-		IServerHandle * unBindHandle() { IServerHandle *p = m_pHandle; m_pHandle = 0; return p; }
+		void bindReceiveHandle(ReciveServerHandle handle) { m_hReceive = handle; }
+		void unBindReceiveHandle() { m_hReceive = NULL; }
+
+		void bindErrorHandle(ErrorServerHandle handle) { m_hError = handle; }
+		void unBindErrorHandle() { m_hError = NULL; }
 
 	protected:
 		uint64 m_nId;
-		IServerHandle *m_pHandle;
+		ReciveServerHandle m_hReceive;
+		ErrorServerHandle m_hError;
 	};
 
 

@@ -13,14 +13,15 @@ using namespace std;
 
 NETWORK_BEGIN
 
-	typedef std::map<uint64,PlayerLoginInfo> LoginInfoMap;
+	typedef std::map<GroupLogin,PlayerLoginInfo> LoginInfoMap;
 
-class LoginServer : public IServerHandle, public IClientHandle
+class LoginServer
 {
 public:
 	LoginServer()
-		: m_pClient(0)
+		: m_pDataBase(0)
 		, m_pServer(0)
+		, m_pMaster(0)
 	{
 
 	}
@@ -36,16 +37,26 @@ public:
 		Config cfg;
 		cfg.loadIni("option.ini");
 		
+		std::string master_host = cfg.getString("master_host");
+		int master_port = cfg.getInt("master_port");
+
 		std::string db_host = cfg.getString("db_host");
 		int db_port = cfg.getInt("db_port");
 
 		int listener_port = cfg.getInt("listener_port");
 
-		m_pClient = NetLib::instance().createClient(db_host.c_str(), db_port);
+		m_pDataBase = NetLib::instance().createClient(db_host.c_str(), db_port);
+		m_pMaster = NetLib::instance().createClient(master_host.c_str(), master_port);
 		m_pServer = NetLib::instance().createServer(listener_port);
 
-		m_pServer->bindHandle(this);
-		m_pClient->bindHandle(this);
+		m_pServer->bindReceiveHandle(boost::bind(&LoginServer::onReciveServerHandle, this, _1, _2, _3));
+		m_pServer->bindErrorHandle(boost::bind(&LoginServer::onErrorServerHandle, this, _1, _2));
+
+		m_pDataBase->bindReceiveHandle(boost::bind(&LoginServer::onReciveDBHandle, this, _1, _2));
+		m_pDataBase->bindErrorHandle(boost::bind(&LoginServer::onErrorDBHandle, this, _1, _2));
+
+		m_pMaster->bindReceiveHandle(boost::bind(&LoginServer::onReciveMasterHandle, this, _1, _2));
+		m_pMaster->bindErrorHandle(boost::bind(&LoginServer::onErrorMasterHandle, this, _1, _2));
 
 		NetLib::instance().run();
 	}
@@ -56,17 +67,21 @@ public:
 
 		if (cmd == C2L_LOGIN)
 		{
+			uint64 c_sessionId;
+			data >> c_sessionId;
+
 			PlayerLoginInfo info;
 			data.read((uint8*)&info, sizeof(PlayerLoginInfo));
 
-			m_LoginInfoMap[sessionId] = info;
+			GroupLogin lgin(c_sessionId, sessionId, serverId);
+			m_LoginInfoMap[lgin] = info;
 			
 			ByteBuffer buffer;
 			buffer << (uint16)L2D_PLAYER_INFO;
 			buffer << (uint8)DB_PLAYER_NAME;
-			buffer << (uint64)sessionId;
-			data.append(info.user_name, MAX_NAME);
-			m_pClient->write(buffer);
+			buffer.append((uint8*)&lgin, sizeof(GroupLogin));
+			buffer.append(info.user_name, MAX_NAME);
+			m_pDataBase->write(buffer);
 		}
 	}
 
@@ -76,42 +91,40 @@ public:
 		uint16 port = server->getPort();
 
 		NetLib::instance().destroyServer(serverId);
-		sLog.outError("server error serverId:%ld port: %d error:%s \n", serverId, port, error.message().c_str());
+		sLog.outError("server error serverId:%lld port: %d error:%s \n", serverId, port, error.message().c_str());
 	}
 
 	// client
-	void onReciveClientHandle(uint64 clientId, ByteBuffer& data)
+	void onReciveDBHandle(uint64 clientId, ByteBuffer& data)
 	{
 		uint16 cmd = data.read<uint16>();
 		if (cmd == D2L_PLAYER_INFO)
 		{
-			uint64 sessionId;
+			GroupLogin lgin;
 			uint8 tp;
 
-			data >> sessionId;
+			data.read((uint8*)&lgin, sizeof(GroupLogin));
 			data >> tp;
 
 			ByteBuffer buffer;
 			buffer << (uint16)L2C_LOGIN;
-			buffer << sessionId;
+			buffer << (uint64)lgin.csessionId;
 
 			if (tp == DB_SUCC)
 			{
 				PlayerInfo info;
 				data.read((uint8*)&info, sizeof(PlayerInfo));
-				buffer.append((uint8*)&info, sizeof(PlayerInfo));
-				//buffer.append(data.rdata(), data.rsize());
-				LoginInfoMap::iterator i = m_LoginInfoMap.find(sessionId);
+				LoginInfoMap::iterator i = m_LoginInfoMap.find(lgin);
 				if (i == m_LoginInfoMap.end())
 				{
-					buffer << DB_ERR;
+					buffer << (uint8)DB_ERR;
 				}
 				else
 				{
 					PlayerLoginInfo linfo = i->second;
-					if (memcmp(info.user_pwd, linfo.user_pwd, MAX_NAME) == 0)
+					if (memcmp(info.user_pwd, linfo.user_pwd, MAX_PWD) == 0)
 					{
-						buffer << DB_SUCC;
+						buffer << (uint8)DB_SUCC;
 						buffer.append((uint8*)&info, sizeof(PlayerInfo));
 					}
 					m_LoginInfoMap.erase(i);
@@ -119,26 +132,42 @@ public:
 			}
 			else
 			{
-				buffer << DB_ERR;
+				buffer << (uint8)DB_ERR;
 			}
-			m_pServer->sendTo(sessionId, buffer);
+			m_pServer->sendTo(lgin.lsessionId, buffer);
 		}
 	}
 
-	void onErrorClientHandle(IClient *client, const boost::system::error_code& error)
+	void onErrorDBHandle(IClient *client, const boost::system::error_code& error)
 	{
 		uint64 clientId = client->getId();
 		std::string host = client->getHost();
 		int port = client->getPort();
 
 		NetLib::instance().destroyClient(clientId);
-		sLog.outError("client error clientId:%ld host:%s port:%d error:%s \n", clientId, host.c_str(), port, error.message().c_str());
+		sLog.outError("client error clientId:%lld host:%s port:%d error:%s \n", clientId, host.c_str(), port, error.message().c_str());
 
 	}
+	// client
+	void onReciveMasterHandle(uint64 clientId, ByteBuffer& data)
+	{
+		uint16 cmd = data.read<uint16>();
+		sLog.outMessage("[onReciveMasterHandle] cmd: %d", cmd);
+	}
 
+	void onErrorMasterHandle(IClient *client, const boost::system::error_code& error)
+	{
+		uint64 clientId = client->getId();
+		std::string host = client->getHost();
+		uint16 port = client->getPort();
+
+		NetLib::instance().destroyClient(clientId);
+		sLog.outError("client error clientId:%lld host:%s port:%d error:%s \n", clientId, host.c_str(), port, error.message().c_str());
+	}
 protected:
 	IServer *m_pServer;
-	IClient *m_pClient;
+	IClient *m_pDataBase;
+	IClient *m_pMaster;
 
 	LoginInfoMap m_LoginInfoMap;
 };

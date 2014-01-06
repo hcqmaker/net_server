@@ -15,6 +15,20 @@ NETWORK_BEGIN
 		static boost::detail::atomic_count m_last_id(0l);
 		m_nId = ++m_last_id;
 		
+		tryConnect();
+	}
+
+	//-------------------------------------------------------------
+	//
+	NetClient::~NetClient()
+	{
+		do_close();
+	}
+
+	//-------------------------------------------------------------
+	//
+	void NetClient::tryConnect()
+	{
 		std::string s = boost::lexical_cast<std::string>(m_nPort);
 
 		tcp::resolver resolver(m_io_service);
@@ -28,17 +42,11 @@ NETWORK_BEGIN
 
 	//-------------------------------------------------------------
 	//
-	NetClient::~NetClient()
-	{
-		do_close();
-	}
-
-	//-------------------------------------------------------------
-	//
 	void NetClient::close()
 	{
 		m_io_service.post(boost::bind(&NetClient::do_close, this));
 	}
+
 
 	//-------------------------------------------------------------
 	//
@@ -107,8 +115,8 @@ NETWORK_BEGIN
 		{
 			m_nHeadCount = 0;
 			memset(m_cHead, 0, 4);
-			if (m_pHandle)
-				m_pHandle->onReciveClientHandle(m_nId, m_read);
+			if (m_hReceive)
+				m_hReceive(m_nId, m_read);
 			start();
 		}
 		else
@@ -137,8 +145,8 @@ NETWORK_BEGIN
 	//
 	void NetClient::throwError(const boost::system::error_code& error)
 	{
-		if (m_pHandle)
-			m_pHandle->onErrorClientHandle(this, error);
+		if (m_hError)
+			m_hError(this,error);
 	}
 
 	//-------------------------------------------------------------

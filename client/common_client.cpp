@@ -17,22 +17,21 @@ USE_NETWORK;
 
 CallBack g_CallBack[RULE_NUM] = {0};
 
-class chat_client : public NetClient, public IClientHandle 
+class chat_client : public NetClient
 {
 public:
 	chat_client(boost::asio::io_service& ioservice, const std::string& host, uint16 port)
 		: NetClient(ioservice, host, port)
 	{
-		this->bindHandle(this);
-
+		this->bindReceiveHandle(boost::bind(&chat_client::onReciveHandle, this, _1, _2));
+		this->bindErrorHandle(boost::bind(&chat_client::onErrorHandle, this, _1, _2));
 
 		g_CallBack[L2C_LOGIN] = &CALLBACK_L2C_LOGIN;
-		g_CallBack[S2D_PLAYER_INFO] = &CALLBACK_S2D_PLAYER_INFO;
 	}
 
-	virtual void onReciveClientHandle(uint64 clientId, ByteBuffer& data)
+	void onReciveHandle(uint64 clientId, ByteBuffer& data)
 	{
-		data.read_skip(4);
+		//data.read_skip(4);
 		if (!g_isDb)
 			Crypto::decrypt(data.rdata(), data.rsize(), data.rdata(), data.rsize());
 		uint16 cmd = data.read<uint16>();
@@ -41,9 +40,12 @@ public:
 			handle(data);
 	}
 
-	virtual void onErrorClientHandle(IClient *client, const boost::system::error_code& error)
+	virtual void onErrorHandle(IClient *client, const boost::system::error_code& error)
 	{
-		sLog.outError("error:%s", error.message().c_str());
+		uint64 clientId = client->getId();
+		std::string host = client->getHost();
+		uint16 port = client->getPort();
+		sLog.outError("client err id: %lld host:%s port:%d error:%s", clientId, host.c_str(), port, error.message().c_str());
 	}
 
 };
@@ -54,7 +56,7 @@ void command_send(chat_client& c,  ByteBuffer& data, bool code = false)
 	data >> cmd;
 
 	if (code) // cmd is short
-		Crypto::encrypt(data.rdata(), data.rsize(), data.rdata(), data.rsize());
+		Crypto::encrypt(data.data(), data.size(), data.data(), data.size());
 
 	ByteBuffer buffer;
 	buffer.append((uint32)data.size());
@@ -76,24 +78,15 @@ void command(chat_client& c)
 		{
 			g_isDb = false;
 			PlayerLoginInfo info;
-			std::cin>>info.user_name>>info.user_pwd;
+			std::cout<<"input uname:";
+			std::cin>>info.user_name;
+			std::cout<<"input upwd:";
+			std::cin>>info.user_pwd;
 
 			ByteBuffer data;
 			data.append((uint16)C2L_LOGIN);
 			data.append((uint8*)&info, sizeof(PlayerLoginInfo));
-			command_send(c, data);
-		}
-		else if (memcmp(line, "dbpinfo", 7) == 0) // player info
-		{
-			g_isDb = true;
-			char name[MAX_NAME] = {0};
-			std::cout<<"input user_name:";
-			std::cin>>name;
-			ByteBuffer data;
-			data.append((uint16)S2D_PLAYER_INFO);
-			data << (uint8)DB_PLAYER_NAME;
-			data.append(name, MAX_NAME);
-			command_send(c, data);
+			command_send(c, data, true);
 		}
 	}
 }

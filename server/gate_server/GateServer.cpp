@@ -23,11 +23,14 @@ NETWORK_BEGIN
 		m_pGServer = NetLib::instance().createServer(listener_game_port);
 		m_pCServer = NetLib::instance().createServer(listener_port);
 
-		GameServerHandle tmpGameServerHandle(this);
 		ClientServerHandle tmpClientServerHandle(this);
+		GameServerHandle tmpGameServerHandle(this);
 
-		m_pCServer->bindHandle(&tmpClientServerHandle);
-		m_pGServer->bindHandle(&tmpGameServerHandle);
+		m_pCServer->bindReceiveHandle(boost::bind(&ClientServerHandle::onReciveServerHandle, &tmpClientServerHandle, _1, _2, _3));
+		m_pCServer->bindErrorHandle(boost::bind(&ClientServerHandle::onErrorServerHandle, &tmpClientServerHandle, _1, _2));
+
+		m_pGServer->bindReceiveHandle(boost::bind(&GameServerHandle::onReciveServerHandle, &tmpGameServerHandle, _1, _2, _3));
+		m_pGServer->bindErrorHandle(boost::bind(&GameServerHandle::onErrorServerHandle, &tmpGameServerHandle, _1, _2));
 
 		// client
 		std::string master_host = cfg.getString("master_host");
@@ -48,45 +51,18 @@ NETWORK_BEGIN
 		LoginHandle tmpLoginHandle(this);
 		ChatHandle tmpChatHandle(this);
 
-		m_pMaster->bindHandle(&tmpMasterHandle);
-		m_pLogin->bindHandle(&tmpLoginHandle);
-		m_pChat->bindHandle(&tmpChatHandle);
+
+		m_pMaster->bindReceiveHandle(boost::bind(&MasterHandle::onReciveClientHandle, &tmpMasterHandle, _1, _2));
+		m_pMaster->bindErrorHandle(boost::bind(&MasterHandle::onErrorClientHandle, &tmpMasterHandle, _1, _2));
+
+		m_pLogin->bindReceiveHandle(boost::bind(&LoginHandle::onReciveClientHandle, &tmpLoginHandle, _1, _2));
+		m_pLogin->bindErrorHandle(boost::bind(&LoginHandle::onErrorClientHandle, &tmpLoginHandle, _1, _2));
+
+		m_pChat->bindReceiveHandle(boost::bind(&ChatHandle::onReciveClientHandle, &tmpChatHandle, _1, _2));
+		m_pChat->bindErrorHandle(boost::bind(&ChatHandle::onErrorClientHandle, &tmpChatHandle, _1, _2));
 
 		NetLib::instance().run();
 	}
-	/*
-	// server
-	void onReciveServerHandle(uint64 serverId, uint64 sessionId, ByteBuffer& data)
-	{
-		Crypto::decrypt(data.data(), data.size(), data.data(), data.size());
-		uint16 cmd = data.read<uint16>();
-		sLog.outMessage("[GateServer::onReciveServerHandle] cmd: %d", cmd);
-
-		Crypto::encrypt(data.data(), data.size(), data.data(), data.size());
-		m_pCServer->sendTo(sessionId, data);
-	}
-
-	void onErrorServerHandle(IServer *server, const boost::system::error_code& error)
-	{
-		uint64 serverId = server->getId();
-		NetLib::instance().destroyServer(serverId);
-		sLog.outError("server error serverId:%ld error:%s \n", serverId, error.message().c_str());
-	}
-
-	// client
-	void onReciveClientHandle(uint64 clientId, ByteBuffer& data)
-	{
-		Crypto::decrypt(data.data(), data.size(), data.data(), data.size());
-		uint16 cmd = data.read<uint16>();
-		sLog.outMessage("[GateServer::onReciveServerHandle] cmd: %d", cmd);
-	}
-
-	void onErrorClientHandle(IClient *client, const boost::system::error_code& error)
-	{
-		uint64 clientId = client->getId();
-		NetLib::instance().destroyClient(clientId);
-		sLog.outError("client error clientId:%ld error:%s \n", clientId, error.message().c_str());
-	}
-	*/
+	
 
 NETWORK_END

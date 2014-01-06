@@ -116,7 +116,8 @@ NETWORK_BEGIN
 		{
 			WriteLock ulock(m_mutex);
 			m_mapSession[session->getId()] = session;
-			session->bindHandle(this);
+			session->bindReceiveHandle(boost::bind(&NetServer::onReciveHandle, this, _1, _2));
+			session->bindErrorHandle(boost::bind(&NetServer::onErrorHandle, this, _1, _2));
 			session->start();
 		}
 		else
@@ -131,25 +132,25 @@ NETWORK_BEGIN
 	//
 	void NetServer::throwError(const boost::system::error_code& error)
 	{
-		if (m_pHandle)
-			m_pHandle->onErrorServerHandle(this, error);
+		if (m_hError)
+			m_hError(this, error);
 	}
 
 	//-------------------------------------------------------------
 	//
-	void NetServer::onReciveSessionHandle(uint64 sessionId, ByteBuffer& data)
+	void NetServer::onReciveHandle(uint64 sessionId, ByteBuffer& data)
 	{
-		if (m_pHandle)
-			m_pHandle->onReciveServerHandle(m_nId, sessionId, data);
+		if (m_hReceive)
+			m_hReceive(m_nId, sessionId, data);
 	}
 
 	//-------------------------------------------------------------
 	//
-	void NetServer::onErrorSessionHandle(ISessionPtr session, const boost::system::error_code& error)
+	void NetServer::onErrorHandle(ISessionPtr session, const boost::system::error_code& error)
 	{
 		uint64 sessionId = session->getId();
 		this->closeSession(sessionId);
-		sLog.outError("session error session:%ld server:%ld error:%s \n", sessionId, this->m_nId, error.message().c_str());
+		sLog.outError("session error session:%lld server:%lld error:%s \n", sessionId, this->m_nId, error.message().c_str());
 	}
 
 NETWORK_END

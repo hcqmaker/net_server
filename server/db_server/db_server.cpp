@@ -27,10 +27,10 @@ NETWORK_BEGIN
 		PlayerInfo *info = NULL;
 		
 		uint8 tmpType;
-		uint64 c_sessionId;
+		GroupLogin lgin;
 		
 		data >> tmpType;
-		data >> c_sessionId;
+		data.read((uint8*)&lgin, sizeof(GroupLogin));
 
 		if (tmpType == DB_PLAYER_NAME)
 		{
@@ -46,8 +46,8 @@ NETWORK_BEGIN
 		}
 		
 		ByteBuffer buffer;
-		buffer.append((uint16)D2L_PLAYER_INFO);
-		buffer << c_sessionId;
+		buffer << (uint16)D2L_PLAYER_INFO;
+		buffer.append((uint8*)&lgin, sizeof(GroupLogin));
 
 		if (info == NULL)
 		{
@@ -63,7 +63,7 @@ NETWORK_BEGIN
 	}
 	
 
-class DBServer : public IServerHandle, public IClientHandle
+class DBServer
 {
 public:
 	DBServer()
@@ -99,8 +99,11 @@ public:
 		m_pMaster = NetLib::instance().createClient(master_host.c_str(), master_port);
 		m_pServer = NetLib::instance().createServer(listener_port);
 
-		m_pServer->bindHandle(this);
-		m_pMaster->bindHandle(this);
+		m_pServer->bindReceiveHandle(boost::bind(&DBServer::onReciveServerHandle, this, _1, _2, _3));
+		m_pServer->bindErrorHandle(boost::bind(&DBServer::onErrorServerHandle, this, _1, _2));
+
+		m_pMaster->bindReceiveHandle(boost::bind(&DBServer::onReciveMasterHandle, this, _1, _2));
+		m_pMaster->bindErrorHandle(boost::bind(&DBServer::onErrorMasterHandle, this, _1, _2));
 
 		g_handles[L2D_PLAYER_INFO] = &HANDLE_L2D_PLAYER_INFO;
 
@@ -115,7 +118,7 @@ public:
 	// server
 	void onReciveServerHandle(uint64 serverId, uint64 sessionId, ByteBuffer& data)
 	{
-		data.read_skip(4);
+		//data.read_skip(4);
 		uint16 cmd = data.read<uint16>();
 		FuncHandle handle = g_handles[cmd];
 		if (handle)
@@ -129,25 +132,24 @@ public:
 		uint64 serverId = server->getId();
 		uint16 port = server->getPort();
 		NetLib::instance().destroyServer(serverId);
-		sLog.outError("server error serverId:%ld port: %d error:%s \n", serverId, port, error.message().c_str());
+		sLog.outError("server error serverId:%lld port: %d error:%s \n", serverId, port, error.message().c_str());
 	}
 
 	// client
-	void onReciveClientHandle(uint64 clientId, ByteBuffer& data)
+	void onReciveMasterHandle(uint64 clientId, ByteBuffer& data)
 	{
 		uint16 cmd = data.read<uint16>();
 		sLog.outMessage("[GateServer::onReciveServerHandle] cmd: %d", cmd);
 	}
 
-	void onErrorClientHandle(IClient *client, const boost::system::error_code& error)
+	void onErrorMasterHandle(IClient *client, const boost::system::error_code& error)
 	{
 		uint64 clientId = client->getId();
 		std::string host = client->getHost();
 		uint16 port = client->getPort();
 
 		NetLib::instance().destroyClient(clientId);
-		//sLog.outError("client error clientId:%ld host:%s port:%d error:%s \n", clientId, host.c_str(), port, error.message().c_str());
-		sLog.outError("client:%d %s", clientId, error.message().c_str());
+		sLog.outError("client error clientId:%lld host:%s port:%d error:%s \n", clientId, host.c_str(), port, error.message().c_str());
 	}
 
 protected:

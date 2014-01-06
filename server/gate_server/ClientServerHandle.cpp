@@ -26,7 +26,7 @@ void GateServer::ClientServerHandle::onErrorServerHandle(IServer *server, const 
 {
 	uint64 serverId = server->getId();
 	NetLib::instance().destroyServer(serverId);
-	sLog.outError("server error serverId:%ld error:%s \n", serverId, error.message().c_str());
+	sLog.outError("server error serverId:%lld error:%s \n", serverId, error.message().c_str());
 }
 
 NETWORK_END

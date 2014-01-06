@@ -38,9 +38,9 @@ NETWORK_BEGIN
 
 	Log::Log()
 	{
-		m_pFileMessage = fopen("info.log", "w");
-		m_pFileWarning = fopen("warn.log", "w");
-		m_pFileError = fopen("error.log", "w");
+		m_pFileMessage = fopen("info.log", "a");
+		m_pFileWarning = fopen("warn.log", "a");
+		m_pFileError = fopen("error.log", "a");
 	}
 
 	//-------------------------------------------------------------------------

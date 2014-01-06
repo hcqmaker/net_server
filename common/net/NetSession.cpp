@@ -71,8 +71,8 @@ NETWORK_BEGIN
 		{
 			m_nHeadCount = 0;
 			memset(m_cHead, 0, 4);
-			if (m_pHandle)
-				m_pHandle->onReciveSessionHandle(m_nId, m_read);
+			if (m_hReceive)
+				m_hReceive(m_nId, m_read);
 			start();
 		}
 		else
@@ -127,7 +127,7 @@ NETWORK_BEGIN
 	//
 	void NetSession::throwError(const boost::system::error_code& error)
 	{
-		if (m_pHandle)
-			m_pHandle->onErrorSessionHandle(shared_from_this(), error);
+		if (m_hError)
+			m_hError(shared_from_this(), error);
 	}
 NETWORK_END

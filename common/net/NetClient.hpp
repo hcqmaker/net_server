@@ -11,6 +11,7 @@ NETWORK_BEGIN
 		NetClient(boost::asio::io_service& ioservice, const std::string& host, uint16 port);
 		~NetClient();
 
+		virtual void tryConnect();
 		virtual void close();
 		virtual bool isConnected();
 		virtual void write(const ByteBuffer& pack);
