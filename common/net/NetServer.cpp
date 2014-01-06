@@ -40,7 +40,7 @@ NETWORK_BEGIN
 
 	//-------------------------------------------------------------
 	//
-	void NetServer::sendTo(long sessionId, const ByteBuffer& data)
+	void NetServer::sendTo(uint64 sessionId, const ByteBuffer& data)
 	{
 		ISessionPtrMap::iterator i = m_mapSession.find(sessionId);
 		if (i != m_mapSession.end())
@@ -49,7 +49,7 @@ NETWORK_BEGIN
 
 	//-------------------------------------------------------------
 	//
-	bool NetServer::closeSession(long sessionId)
+	bool NetServer::closeSession(uint64 sessionId)
 	{
 		WriteLock tmpLock(m_mutex);
 		ISessionPtrMap::iterator i = m_mapSession.find(sessionId);
@@ -59,6 +59,13 @@ NETWORK_BEGIN
 			return true;
 		}
 		return false;
+	}
+
+	//-------------------------------------------------------------
+	//
+	uint16 NetServer::getPort()
+	{
+		return m_endpoint.port();
 	}
 
 	//-------------------------------------------------------------
@@ -130,7 +137,7 @@ NETWORK_BEGIN
 
 	//-------------------------------------------------------------
 	//
-	void NetServer::onReciveSessionHandle(long sessionId, ByteBuffer& data)
+	void NetServer::onReciveSessionHandle(uint64 sessionId, ByteBuffer& data)
 	{
 		if (m_pHandle)
 			m_pHandle->onReciveServerHandle(m_nId, sessionId, data);
@@ -140,7 +147,7 @@ NETWORK_BEGIN
 	//
 	void NetServer::onErrorSessionHandle(ISessionPtr session, const boost::system::error_code& error)
 	{
-		long sessionId = session->getId();
+		uint64 sessionId = session->getId();
 		this->closeSession(sessionId);
 		sLog.outError("session error session:%ld server:%ld error:%s \n", sessionId, this->m_nId, error.message().c_str());
 	}

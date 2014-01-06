@@ -27,7 +27,7 @@ NETWORK_BEGIN
 
 	//-----------------------------------------------------
 	//
-	IClient* NetLib::createClient(const std::string& host, int port)
+	IClient* NetLib::createClient(const std::string& host, uint16 port)
 	{
 		WriteLock ulock(m_mutexClient);
 		IClient *p = new NetClient(m_io_service, host, port);
@@ -38,7 +38,7 @@ NETWORK_BEGIN
 
 	//-----------------------------------------------------
 	//
-	IServer* NetLib::createServer(int port)
+	IServer* NetLib::createServer(uint16 port)
 	{
 		WriteLock ulock(m_mutexServer);
 		tcp::endpoint endpoint(tcp::v4(), port);
@@ -49,7 +49,7 @@ NETWORK_BEGIN
 
 	//-----------------------------------------------------
 	//
-	IClient* NetLib::findClient(long id)
+	IClient* NetLib::findClient(uint64 id)
 	{
 		ClientMap::iterator i = m_mapClient.find(id);
 		if (i == m_mapClient.end())
@@ -59,7 +59,7 @@ NETWORK_BEGIN
 
 	//-----------------------------------------------------
 	//
-	IServer* NetLib::findServer(long id)
+	IServer* NetLib::findServer(uint64 id)
 	{
 		ServerMap::iterator i = m_mapServer.find(id);
 		if (i == m_mapServer.end())
@@ -69,7 +69,7 @@ NETWORK_BEGIN
 
 	//-----------------------------------------------------
 	//
-	bool NetLib::destroyClient(long id)
+	bool NetLib::destroyClient(uint64 id)
 	{
 		WriteLock ulock(m_mutexClient);
 		ClientMap::iterator i = m_mapClient.find(id);
@@ -90,7 +90,7 @@ NETWORK_BEGIN
 	
 	//-----------------------------------------------------
 	//
-	bool NetLib::destroyServer(long id)
+	bool NetLib::destroyServer(uint64 id)
 	{
 		WriteLock ulock(m_mutexServer);
 		ServerMap::iterator i = m_mapServer.find(id);

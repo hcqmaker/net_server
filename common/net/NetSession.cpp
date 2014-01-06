@@ -9,7 +9,7 @@ NETWORK_BEGIN
 
 	//-------------------------------------------------------------------------
 	//
-	NetSession::NetSession(boost::asio::io_service& io_service, long serverId)
+	NetSession::NetSession(boost::asio::io_service& io_service, uint64 serverId)
 	: m_socket(io_service)
 	, m_nServerId(serverId)
 	, m_nHeadCount(0)

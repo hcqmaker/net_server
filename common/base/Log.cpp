@@ -14,13 +14,25 @@
 #define MAX_QUERY_LEN 32*1024
 #define RETURN_IS_FAIL(v) {if (!v) return;}
 
+#if PLATFORM == PLATFORM_WINDOWS
 
 #define CACHE_VA_LIST(D, F) \
-va_list ap; \
-va_start(ap, F); \
-char D[MAX_QUERY_LEN]; \
-vsnprintf(D, MAX_QUERY_LEN, F, ap); \
-va_end(ap)
+	va_list ap; \
+	char D[MAX_QUERY_LEN] = {0}; \
+	va_start(ap, F);\
+	vsnprintf_s(D, MAX_QUERY_LEN, MAX_QUERY_LEN, F, ap);\
+	va_end(ap)
+
+
+#else
+
+#define CACHE_VA_LIST(D, F) \
+	va_list ap; \
+	va_start(ap, F); \
+	char D[MAX_QUERY_LEN] = {0}; \
+	vsnprintf(D, MAX_QUERY_LEN, F, ap); \
+	va_end(ap)
+#endif 
 
 NETWORK_BEGIN
 

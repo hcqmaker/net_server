@@ -8,12 +8,16 @@ NETWORK_BEGIN
 	class NetClient : public IClient
 	{
 	public:
-		NetClient(boost::asio::io_service& ioservice, const std::string& host, int port);
+		NetClient(boost::asio::io_service& ioservice, const std::string& host, uint16 port);
 		~NetClient();
 
 		virtual void close();
 		virtual bool isConnected();
 		virtual void write(const ByteBuffer& pack);
+
+		virtual std::string getHost() { return m_strHost; }
+		virtual uint16 getPort() { return m_nPort; }
+
 	protected:
 		void handle_connect(const boost::system::error_code& error);
 		void handle_read_header(const boost::system::error_code& error);

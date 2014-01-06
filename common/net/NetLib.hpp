@@ -8,8 +8,8 @@
 #include <map>
 
 NETWORK_BEGIN
-	typedef std::map<long, IServer*> ServerMap;
-	typedef std::map<long, IClient*> ClientMap;
+	typedef std::map<uint64, IServer*> ServerMap;
+	typedef std::map<uint64, IClient*> ClientMap;
 
 	class NetLib : public Singleton<NetLib>
 	{
@@ -27,14 +27,14 @@ NETWORK_BEGIN
 		boost::asio::io_service m_io_service;
 	public:
 
-		IClient* createClient(const std::string& host, int port);
-		IServer* createServer(int port);
+		IClient* createClient(const std::string& host, uint16 port);
+		IServer* createServer(uint16 port);
 
-		IClient* findClient(long id);
-		IServer* findServer(long id);
+		IClient* findClient(uint64 id);
+		IServer* findServer(uint64 id);
 
-		bool destroyClient(long id);
-		bool destroyServer(long id);
+		bool destroyClient(uint64 id);
+		bool destroyServer(uint64 id);
 
 		void run(int thread_num = 2);
 		void runOne();

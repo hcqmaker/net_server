@@ -29,32 +29,32 @@ NETWORK_BEGIN
 	class IServer;
 
 	typedef boost::shared_ptr<ISession> ISessionPtr;
-	typedef std::map<long, ISessionPtr> ISessionPtrMap;
+	typedef std::map<uint64, ISessionPtr> ISessionPtrMap;
 	typedef std::deque<ByteBuffer> BufferQueue;
 
 	typedef boost::shared_ptr<IClient> IClientPtr;
-	typedef std::map<long, IClient> IClientPtrMap;
+	typedef std::map<uint64, IClient> IClientPtrMap;
 
 	using boost::asio::ip::tcp;
 	
 	class IClientHandle
 	{
 	public:
-		virtual void onReciveClientHandle(long clientId, ByteBuffer& data) = 0;
+		virtual void onReciveClientHandle(uint64 clientId, ByteBuffer& data) = 0;
 		virtual void onErrorClientHandle(IClient *client, const boost::system::error_code& error) = 0;
 	};
 
 	class ISessionHandle
 	{
 	public:
-		virtual void onReciveSessionHandle(long sessionId, ByteBuffer& data) = 0;
+		virtual void onReciveSessionHandle(uint64 sessionId, ByteBuffer& data) = 0;
 		virtual void onErrorSessionHandle(ISessionPtr session, const boost::system::error_code& error) = 0;
 	};
 
 	class IServerHandle
 	{
 	public:
-		virtual void onReciveServerHandle(long serverId, long sessionId, ByteBuffer& data) = 0;
+		virtual void onReciveServerHandle(uint64 serverId, uint64 sessionId, ByteBuffer& data) = 0;
 		virtual void onErrorServerHandle(IServer *server, const boost::system::error_code& error) = 0;
 	};
 
@@ -63,17 +63,20 @@ NETWORK_BEGIN
 	public:
 		IClient():m_nId(0l),m_pHandle(0){}
 		virtual ~IClient(){}
-		virtual long getId() { return m_nId;}
+		virtual uint64 getId() { return m_nId;}
 		
 		virtual void close() = 0;
 		virtual bool isConnected() = 0;
 		virtual void write(const ByteBuffer& pack) = 0;
 
+		virtual std::string getHost() = 0;
+		virtual uint16 getPort() = 0;
+
 		void bindHandle(IClientHandle* handle) { m_pHandle = handle; }
 		IClientHandle * unBindHandle() { IClientHandle *p = m_pHandle; m_pHandle = 0; return p; }
 
 	protected:
-		long m_nId;
+		uint64 m_nId;
 		IClientHandle *m_pHandle;
 	};
 
@@ -83,8 +86,8 @@ NETWORK_BEGIN
 		ISession():m_nId(0l),m_pHandle(0){}
 		virtual ~ISession(){}
 
-		virtual long getServerId() = 0;
-		virtual long getId() { return m_nId;}
+		virtual uint64 getServerId() = 0;
+		virtual uint64 getId() { return m_nId;}
 
 		virtual void start() = 0;
 		virtual bool isConnected() = 0;
@@ -94,7 +97,7 @@ NETWORK_BEGIN
 		ISessionHandle * unBindHandle() { ISessionHandle *p = m_pHandle; m_pHandle = 0; return p; }
 
 	protected:
-		long m_nId;
+		uint64 m_nId;
 		ISessionHandle *m_pHandle;
 	};
 	
@@ -104,18 +107,20 @@ NETWORK_BEGIN
 	public:
 		IServer():m_nId(0l),m_pHandle(0){}
 		virtual ~IServer(){}
-		virtual long getId() { return m_nId;}
+		virtual uint64 getId() { return m_nId;}
 
 		virtual void sendToAll(const ByteBuffer& ptr) = 0;
-		virtual void sendTo(long sessionId, const ByteBuffer& ptr) = 0;
-		virtual bool closeSession(long sessionId) = 0;
+		virtual void sendTo(uint64 sessionId, const ByteBuffer& ptr) = 0;
+		virtual bool closeSession(uint64 sessionId) = 0;
 		virtual void close() = 0;
+
+		virtual uint16 getPort() = 0;
 
 		void bindHandle(IServerHandle* handle) { m_pHandle = handle; }
 		IServerHandle * unBindHandle() { IServerHandle *p = m_pHandle; m_pHandle = 0; return p; }
 
 	protected:
-		long m_nId;
+		uint64 m_nId;
 		IServerHandle *m_pHandle;
 	};
 

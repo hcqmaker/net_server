@@ -27,13 +27,13 @@ NETWORK_BEGIN
 // here use big endian
 template<typename T> inline void EndianConvert(T& val) 
 { 
-	if (is_littlendbian())
+	if (is_bigendian())
 		ByteConverter::apply<T>(&val); 
 }
 
 template<typename T> inline void EndianConvertReverse(T& val)
 {
-	if (is_littlendbian())
+	if (is_bigendian())
 		ByteConverter::apply<T>(&val);
 }
 

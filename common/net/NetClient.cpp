@@ -4,7 +4,7 @@
 
 NETWORK_BEGIN
 
-	NetClient::NetClient(boost::asio::io_service& ioservice, const std::string& host, int port)
+	NetClient::NetClient(boost::asio::io_service& ioservice, const std::string& host, uint16 port)
 	 : m_strHost(host)
 	 , m_nPort(port)
 	 , m_nHeadCount(0)

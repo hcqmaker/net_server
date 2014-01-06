@@ -57,6 +57,9 @@ NETWORK_BEGIN
 			put(pos, (uint8*)&value, sizeof(value));
 		}
 
+		ByteBuffer& operator=(const ByteBuffer& buf) 
+		{  _rpos = buf._rpos; _wpos = buf._wpos; _storage = buf._storage; return *this; }
+
 		ByteBuffer& operator<<(uint8 value) { append<uint8>(value); return *this; }
 		ByteBuffer& operator<<(uint16 value) { append<uint16>(value); return *this; }
 		ByteBuffer& operator<<(uint32 value) { append<uint32>(value); return *this; }
@@ -159,6 +162,10 @@ NETWORK_BEGIN
 		const uint8* contents() const { return &_storage[0]; }
 		const uint8* data() const { return &_storage[0]; }
 		uint8* data() { return &_storage[0]; }
+		uint8* rdata() { return &_storage[_rpos]; }
+		uint8* wdata() { return &_storage[_wpos]; }
+		size_t rsize() { return size() - _rpos; }
+		size_t wsize() { return size() - _wpos; }
 		std::vector<uint8>& bytes() { return _storage; }
 		size_t size() const { return _storage.size(); }
 		bool empty() const { return _storage.empty(); }

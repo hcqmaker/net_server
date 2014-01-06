@@ -13,12 +13,14 @@ NETWORK_BEGIN
 		NetServer(boost::asio::io_service& ioservice, const tcp::endpoint& endpoint);
 		virtual ~NetServer();
 		virtual void sendToAll(const ByteBuffer& data);
-		virtual void sendTo(long sessionId, const ByteBuffer& data);
-		virtual bool closeSession(long sessionId);
+		virtual void sendTo(uint64 sessionId, const ByteBuffer& data);
+		virtual bool closeSession(uint64 sessionId);
 		virtual void close();
 
 		virtual void run();
 		virtual void runOne();
+
+		virtual uint16 getPort();
 
 		void clear();
 		
@@ -28,11 +30,10 @@ NETWORK_BEGIN
 		void handle_accept(ISessionPtr session, const boost::system::error_code& error);
 		void throwError(const boost::system::error_code& error);
 
-		void onReciveSessionHandle(long sessionId, ByteBuffer& data);
+		void onReciveSessionHandle(uint64 sessionId, ByteBuffer& data);
 		void onErrorSessionHandle(ISessionPtr session, const boost::system::error_code& error);
 
 	private:
-		long m_nId;
 		tcp::endpoint m_endpoint;
 
 		boost::asio::io_service& m_io_service;

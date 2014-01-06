@@ -15,9 +15,9 @@ NETWORK_BEGIN
 	class NetSession : public ISession, public boost::enable_shared_from_this<NetSession>
 	{
 	public:
-		NetSession(boost::asio::io_service& io_service, long serverId);
+		NetSession(boost::asio::io_service& io_service, uint64 serverId);
 		virtual ~NetSession();
-		virtual long getServerId() { return m_nServerId; }
+		virtual uint64 getServerId() { return m_nServerId; }
 
 		virtual void start();
 		virtual bool isConnected() { return m_bClosed; }
@@ -36,7 +36,7 @@ NETWORK_BEGIN
 		void throwError(const boost::system::error_code& error);
 
 		tcp::socket m_socket;
-		long		m_nServerId;
+		uint64		m_nServerId;
 		bool		m_bClosed;
 		
 		ByteBuffer	m_read;
