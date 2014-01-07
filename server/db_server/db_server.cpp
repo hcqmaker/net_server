@@ -6,6 +6,7 @@
 #include "db.hpp"
 
 #include "PlayerModule.hpp"
+#include "function_handle.hpp"
 
 #include <boost/thread.hpp>
 #include <boost/function.hpp>
@@ -16,67 +17,20 @@ using namespace std;
 
 
 NETWORK_BEGIN
-	using namespace sql;
-	typedef void (*FuncHandle)(uint64 sessionId, IServer *server, ByteBuffer& data);
 	
 	FuncHandle g_handles[RULE_NUM] = {0};
 	Connection *g_conn = NULL;
 
-	void HANDLE_L2D_PLAYER_INFO(uint64 sessionId, IServer *server, ByteBuffer& data)
-	{
-		PlayerInfo *info = NULL;
-		
-		uint8 tmpType;
-		GroupLogin lgin;
-		
-		data >> tmpType;
-		data.read((uint8*)&lgin, sizeof(GroupLogin));
-
-		if (tmpType == DB_PLAYER_NAME)
-		{
-			char name[MAX_NAME + 1] = {0};
-			data.read((uint8*)name, MAX_NAME);
-			info = PlayerModule::instance().findPlayerInfoByName(name);
-		}
-		else if (tmpType == DB_PLAYER_UID)
-		{
-			uint32 userId = 0;
-			data >> userId;
-			info = PlayerModule::instance().findPlayerInfoByUid(userId);
-		}
-		
-		ByteBuffer buffer;
-		buffer << (uint16)D2L_PLAYER_INFO;
-		buffer.append((uint8*)&lgin, sizeof(GroupLogin));
-
-		if (info == NULL)
-		{
-			buffer.append((uint8)DB_ERR);
-		}
-		else
-		{
-			buffer.append((uint8)DB_SUCC);
-			buffer.append((uint8*)info, sizeof(PlayerInfo));
-		}
-
-		server->sendTo(sessionId, buffer);
-	}
 	
-
 class DBServer
 {
 public:
 	DBServer()
 		: m_pMaster(0)
 		, m_pServer(0)
-	{
+	{ }
 
-	}
-
-	~DBServer()
-	{
-
-	}
+	~DBServer() { }
 
 	void run()
 	{
@@ -93,9 +47,6 @@ public:
 
 		int listener_port = cfg.getInt("listener_port");
 
-		int request_threadnum = cfg.getInt("request_threadnum");
-		int response_threadnum = cfg.getInt("response_threadnum");
-
 		m_pMaster = NetLib::instance().createClient(master_host.c_str(), master_port);
 		m_pServer = NetLib::instance().createServer(listener_port);
 
@@ -105,8 +56,8 @@ public:
 		m_pMaster->bindReceiveHandle(boost::bind(&DBServer::onReciveMasterHandle, this, _1, _2));
 		m_pMaster->bindErrorHandle(boost::bind(&DBServer::onErrorMasterHandle, this, _1, _2));
 
-		g_handles[L2D_PLAYER_INFO] = &HANDLE_L2D_PLAYER_INFO;
-
+		
+		register_all(g_handles);
 
 		g_conn = DbLib::instance().connect(db_host.c_str(), db_user.c_str(), db_pwd.c_str());
 		g_conn->setSchema("net_db");
@@ -118,13 +69,12 @@ public:
 	// server
 	void onReciveServerHandle(uint64 serverId, uint64 sessionId, ByteBuffer& data)
 	{
-		//data.read_skip(4);
 		uint16 cmd = data.read<uint16>();
 		FuncHandle handle = g_handles[cmd];
 		if (handle)
 			handle(sessionId, m_pServer, data);
-
-		//sLog.outMessage("[GateServer::onReciveServerHandle] cmd: %d", cmd);
+		else
+			sLog.outWarning("warning can't find cmd:%d handle", cmd);
 	}
 
 	void onErrorServerHandle(IServer *server, const boost::system::error_code& error)

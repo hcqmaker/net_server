@@ -8,6 +8,7 @@
 #include <mysql_driver.h>
 #include <cppconn/resultset.h>
 #include <cppconn/statement.h>
+#include <cppconn/exception.h>
 #include <string.h>
 
 using namespace sql;

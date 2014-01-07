@@ -5,6 +5,7 @@
 #include "base.hpp"
 
 #include "rule.hpp"
+#include "login_handle.hpp"
 
 #include <boost/thread.hpp>
 
@@ -13,7 +14,8 @@ using namespace std;
 
 NETWORK_BEGIN
 
-	typedef std::map<GroupLogin,PlayerLoginInfo> LoginInfoMap;
+ClientHandle g_clientHandle[RULE_NUM] = {0};
+SessionHandle g_sessionHandle[RULE_NUM] = {0};
 
 class LoginServer
 {
@@ -58,31 +60,19 @@ public:
 		m_pMaster->bindReceiveHandle(boost::bind(&LoginServer::onReciveMasterHandle, this, _1, _2));
 		m_pMaster->bindErrorHandle(boost::bind(&LoginServer::onErrorMasterHandle, this, _1, _2));
 
+		register_session(g_sessionHandle);
+		register_client(g_clientHandle);
 		NetLib::instance().run();
 	}
 	// server
 	void onReciveServerHandle(uint64 serverId, uint64 sessionId, ByteBuffer& data)
 	{
 		uint16 cmd = data.read<uint16>();
-
-		if (cmd == C2L_LOGIN)
-		{
-			uint64 c_sessionId;
-			data >> c_sessionId;
-
-			PlayerLoginInfo info;
-			data.read((uint8*)&info, sizeof(PlayerLoginInfo));
-
-			GroupLogin lgin(c_sessionId, sessionId, serverId);
-			m_LoginInfoMap[lgin] = info;
-			
-			ByteBuffer buffer;
-			buffer << (uint16)L2D_PLAYER_INFO;
-			buffer << (uint8)DB_PLAYER_NAME;
-			buffer.append((uint8*)&lgin, sizeof(GroupLogin));
-			buffer.append(info.user_name, MAX_NAME);
-			m_pDataBase->write(buffer);
-		}
+		SessionHandle handle = g_sessionHandle[cmd];
+		if (handle)
+			handle(m_pDataBase, serverId, sessionId, data);
+		else
+			sLog.outWarning("[onReciveServerHandle] can't find handle cmd:%d", cmd);
 	}
 
 	void onErrorServerHandle(IServer *server, const boost::system::error_code& error)
@@ -98,44 +88,11 @@ public:
 	void onReciveDBHandle(uint64 clientId, ByteBuffer& data)
 	{
 		uint16 cmd = data.read<uint16>();
-		if (cmd == D2L_PLAYER_INFO)
-		{
-			GroupLogin lgin;
-			uint8 tp;
-
-			data.read((uint8*)&lgin, sizeof(GroupLogin));
-			data >> tp;
-
-			ByteBuffer buffer;
-			buffer << (uint16)L2C_LOGIN;
-			buffer << (uint64)lgin.csessionId;
-
-			if (tp == DB_SUCC)
-			{
-				PlayerInfo info;
-				data.read((uint8*)&info, sizeof(PlayerInfo));
-				LoginInfoMap::iterator i = m_LoginInfoMap.find(lgin);
-				if (i == m_LoginInfoMap.end())
-				{
-					buffer << (uint8)DB_ERR;
-				}
-				else
-				{
-					PlayerLoginInfo linfo = i->second;
-					if (memcmp(info.user_pwd, linfo.user_pwd, MAX_PWD) == 0)
-					{
-						buffer << (uint8)DB_SUCC;
-						buffer.append((uint8*)&info, sizeof(PlayerInfo));
-					}
-					m_LoginInfoMap.erase(i);
-				}
-			}
-			else
-			{
-				buffer << (uint8)DB_ERR;
-			}
-			m_pServer->sendTo(lgin.lsessionId, buffer);
-		}
+		ClientHandle handle = g_clientHandle[cmd];
+		if (handle)
+			handle(m_pServer, clientId, data);
+		else
+			sLog.outWarning("[onReciveDBHandle] can't find handle cmd:%d", cmd);
 	}
 
 	void onErrorDBHandle(IClient *client, const boost::system::error_code& error)
@@ -168,8 +125,6 @@ protected:
 	IServer *m_pServer;
 	IClient *m_pDataBase;
 	IClient *m_pMaster;
-
-	LoginInfoMap m_LoginInfoMap;
 };
 
 

@@ -21,9 +21,15 @@
     <ClCompile Include="PlayerModule.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="function_handle.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PlayerModule.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="function_handle.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

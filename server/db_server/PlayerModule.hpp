@@ -20,7 +20,8 @@ NETWORK_BEGIN
 	public:
 		PlayerInfo* findPlayerInfoByName(const char* user_name);
 		PlayerInfo* findPlayerInfoByUid(uint32 userId);
-		PlayerInfo* findPlayerInfoById(uint64 id);
+
+		int createPlayerInfo(const PlayerInfo *info);
 
 		void delPlayerInfoByUid(uint32 userId);
 		void addPlayerInfo(PlayerInfo *info);

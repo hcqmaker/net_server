@@ -1,5 +1,7 @@
 #include "GateServer.hpp"
 #include "rule.hpp"
+#include "net.hpp"
+#include "base.hpp"
 
 NETWORK_BEGIN
 
@@ -9,21 +11,17 @@ GateServer::LoginHandle::~LoginHandle(){}
 void GateServer::LoginHandle::onReciveClientHandle(uint64 clientId, ByteBuffer& data) 
 {
 	uint16 cmd;
+	uint64 sessionId;
+
 	data >> cmd;
+	data >> sessionId;
 
-	if (cmd == L2C_LOGIN)
-	{
-		uint64 sessionId;
-		data >> sessionId;
+	ByteBuffer buffer;
+	buffer << cmd;
+	buffer.append(data.rdata(), data.rsize());
 
-		ByteBuffer buffer;
-
-		buffer << (uint16)L2C_LOGIN;
-		buffer.append(data.rdata(), data.rsize());
-
-		Crypto::decrypt(buffer.data(), buffer.size(), buffer.data(), buffer.size());
-		m_pGateServer->m_pCServer->sendTo(sessionId, buffer);
-	}
+	Crypto::decrypt(buffer.data(), buffer.size(), buffer.data(), buffer.size());
+	m_pGateServer->m_pCServer->sendTo(sessionId, buffer);
 }
 
 void GateServer::LoginHandle::onErrorClientHandle(IClient *client, const boost::system::error_code& error) 

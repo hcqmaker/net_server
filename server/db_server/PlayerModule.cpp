@@ -1,9 +1,10 @@
 #include "PlayerModule.hpp"
+#include  <boost/format.hpp>
 
 NETWORK_BEGIN
 
 	// find user info
-const std::string PLAYER_SELECT_PRIX = "select id,user_id,user_name,user_pwd,level,gender,role_id,scene_id,x,y from g_user where ";
+const std::string PLAYER_SELECT_PRIX = "select user_id,user_name,user_pwd,level,gender,role_id,scene_id,x,y from g_user where ";
 
 	PlayerInfo * db_findPlayerInfo(Connection *conn, const std::string &sql)
 	{
@@ -15,7 +16,6 @@ const std::string PLAYER_SELECT_PRIX = "select id,user_id,user_name,user_pwd,lev
 		{
 			info = new PlayerInfo;
 
-			info->id = res->getInt64("id");
 			info->user_id = res->getUInt("user_id");
 			std::string user_name = res->getString("user_name");
 			size_t size = user_name.size() < MAX_NAME ? user_name.size() : MAX_NAME;
@@ -36,12 +36,13 @@ const std::string PLAYER_SELECT_PRIX = "select id,user_id,user_name,user_pwd,lev
 		return info;
 	}
 
-	int db_updatePlayerInfo(Connection *conn, PlayerInfo *info)
+	int db_updatePlayerInfo(Connection *conn, const PlayerInfo *info)
 	{
 		std::string sql = "update g_user set ";
 		sql.append("user_name='");
 		sql.append(info->user_name);
 		sql.append("',user_pwd='");
+		sql.append(info->user_pwd);
 		sql.append("',level=");
 		sql.append(info->level + "");
 		sql.append(",gender=");
@@ -57,8 +58,45 @@ const std::string PLAYER_SELECT_PRIX = "select id,user_id,user_name,user_pwd,lev
 		sql.append(" where user_id=");
 		sql.append(info->user_id + "");
 
+		int ret = 0;
 		Statement *stmt = conn->createStatement();
-		int ret = stmt->executeUpdate(sql.c_str());
+		try
+		{
+			ret = stmt->executeUpdate(sql.c_str());
+		}
+		catch (sql::SQLException &e)
+		{
+			sLog.outError("[db_updatePlayerInfo] sql error :%s errorCode: %d", e.what(), e.getErrorCode());
+		}
+		delete stmt;
+		return ret;
+	}
+
+	int db_createPlayerInfo(Connection *conn, const PlayerInfo *info)
+	{
+		boost::format fmter("insert into g_user(user_name,user_pwd,level,gender,role_id,scene_id,x,y) values('%s','%s',%d,%d,%d,%d,%d,%d)");
+		fmter % info->user_name;
+		fmter % info->user_pwd;
+		fmter % info->level;
+		fmter % (int)info->gender;
+		fmter % info->role_id;
+		fmter % info->scene_id;
+		fmter % info->x;
+		fmter % info->y;
+		
+		std::string sql = boost::str(fmter);
+		int ret = 0;
+		
+		Statement *stmt = conn->createStatement();
+		try
+		{
+			ret = stmt->executeUpdate(sql.c_str());
+		}
+		catch (sql::SQLException &e)
+		{
+			sLog.outError("[db_createPlayerInfo] sql error :%s errorCode: %d", e.what(), e.getErrorCode());
+		}
+	
 		delete stmt;
 		return ret;
 	}
@@ -118,33 +156,13 @@ const std::string PLAYER_SELECT_PRIX = "select id,user_id,user_name,user_pwd,lev
 		return info;
 	}
 
-	PlayerInfo* PlayerModule::findPlayerInfoById(uint64 id)
+	int PlayerModule::createPlayerInfo(const PlayerInfo *info)
 	{
-		PlayerInfo *info = NULL;
-		PlayerInfoMap::iterator i = m_PlayerInfoMap.begin();
-		for (; i != m_PlayerInfoMap.end(); ++i)
-		{
-			if (i->second->id == id)
-			{
-				info = i->second;
-				break;
-			}
-		}
+		PlayerInfo *tmpInfo = findPlayerInfoByName(info->user_name);
+		if (tmpInfo != NULL)
+			return 0;
 
-		if (info == NULL)
-		{
-			std::string sql = PLAYER_SELECT_PRIX + "id=";
-			sql.append("'");
-			sql.append(id + "");
-			sql.append(",");
-
-			info = db_findPlayerInfo(m_pConn, sql);
-			if (info)
-				m_PlayerInfoMap.insert(PlayerInfoMap::value_type(info->user_id, info));
-
-		}
-
-		return info;
+		return db_createPlayerInfo(m_pConn, info);
 	}
 
 	void PlayerModule::delPlayerInfoByUid(uint32 userId)

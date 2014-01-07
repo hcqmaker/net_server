@@ -81,9 +81,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="db_server.cpp" />
+    <ClCompile Include="function_handle.cpp" />
     <ClCompile Include="PlayerModule.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="function_handle.hpp" />
     <ClInclude Include="PlayerModule.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
